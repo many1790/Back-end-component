@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-
+// mport mongoose from "mongoose";
+const mongoose= require("moongose");
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -10,4 +10,4 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB;
+//export default connectDB;
