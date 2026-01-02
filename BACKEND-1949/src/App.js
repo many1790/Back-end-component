@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const {userList}= require("./config/MockedUsers.js");
+const {userList} = require("./config/MockedUsers.js");
 const PORT = 3000;
 const app = express();
 app.use(express.json());
@@ -15,8 +15,10 @@ app.use(cors({
 //////////////////////////////////////////////////////////
 ///////------------enviar un objeto----------------------
 app.get("/users", (req, res)=>{
-    res.send(JSON.stringify(userList))
+
+    res.status(200).json(userList);
 })
+console.log(userList);
 ///---------enpoints------------------------------------
 app.post("/login", (req,res)=>{
     const user = userList.find((u) => u.email === email && u.pass === pass);

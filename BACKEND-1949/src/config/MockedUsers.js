@@ -1,4 +1,4 @@
-let userList= [
+const userList= [
     {
         name:"Koraima",
         email:"test0@test.com",
@@ -24,3 +24,4 @@ let userList= [
         role:"user",
     }
 ];
+module.exports = { userList }
