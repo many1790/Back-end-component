@@ -1,27 +1,37 @@
+//////--------CONST-COLLECTION-----------------------------
 const express = require("express");
 const cors = require("cors");
-const {userList} = require("./config/MockedUsers.js");
-const PORT = 3000;
+require("dotenv").config();
+const {userList} = require("./DataBase/MockedUsers.js");
+const connectDB = require("./DataBase/db.js");
+
 const app = express();
+//////////////////////////////////////////////////////////////////////////////////////////////
+///middlewares
 app.use(express.json());
-
-
+connectDB();
+////////////////////////////////////////////////////////////////////////////////////////////////
 app.use(cors({
     origin:"http://localhost:5173",
-    methods:["GET","POST","OPTIONS"],
+    methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
     allowedHeaders:["Content-Type"],
 }));
-
 //////////////////////////////////////////////////////////
+//////-------CHECK-POINT--------------------------------
+app.get("/", (req,res)=>{
+    res.send("Hola")
+})
 ///////------------enviar un objeto----------------------
 app.get("/users", (req, res)=>{
 
     res.status(200).json(userList);
 })
-console.log(userList);
+
 ///---------enpoints------------------------------------
 app.post("/login", (req,res)=>{
+    const { email, pass } = req.body;
     const user = userList.find((u) => u.email === email && u.pass === pass);
+
     console.log(user);
 
 
@@ -40,9 +50,11 @@ app.post("/login", (req,res)=>{
     res.status(200).json({
         statu:"success",
         userData: user,
+        message:"WELCOME ADMIN!"
     })
 })
 ////////////////////////////
+const PORT = process.env.PORT || 3000; ///////////////////////////////////////////////////
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
