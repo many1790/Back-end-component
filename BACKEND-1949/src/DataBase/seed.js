@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 require("dotenv").config();
 
-
+const User = require("../models/user.js");
 
 const seedUsers = async () => {
   await mongoose.connect(process.env.MONGO_URL);
@@ -11,13 +11,13 @@ const seedUsers = async () => {
     {
       name: "Admin",
       email: "admin@email.com",
-      pass: "12345678",
+      password: "12345678",
       role: "admin",
     },
     {
         name: "user",
         email: "user@email.com",
-        pass: "12345678",
+        password: "12345678",
         role: "user",
       },
   ];
