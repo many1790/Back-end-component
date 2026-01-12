@@ -2,8 +2,8 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const authRoutes = require("./routers/authRoutes.js");
-
+const authRoutes = require("./routes/authRoutes.js");
+const User = require("./models/user.js");
 const connectDB = require("./DataBase/db.js");
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("./middlewares/authMiddleware.js");
@@ -19,6 +19,7 @@ app.use(cors({
     methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
+console.log("APP.JS CARGADO");
 
 //////////////////////////////////////////////////////////
 //////-------CHECK-POINT--------------------------------
@@ -34,24 +35,29 @@ app.get("/users", (req, res) => {
   
   app.use("/auth", authRoutes)
 ///---------enpoints------------------------------------
-app.post("/login", (req, res) => {
-    res.status(501).json({
-      message: "Login pendiente de implementación",
-    });
-  });
-  
+
 ////////////////////////////
-app.get("/me", authMiddleware, (req, res) => {
-    res.status(501).json({
-      message: "Endpoint pendiente de implementación",
+
+
+app.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("ERROR /me:", error);
+    res.status(500).json({
+      message: "Error interno del servidor",
     });
-  });
-  app.delete("/me", authMiddleware, (req, res) => {
-    res.status(501).json({
-      message: "Endpoint pendiente de implementación",
-    });
-  });
-  
+  }
+});
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 const PORT = process.env.PORT || 3000; ///////////////////////////////////////////////////
 app.listen(PORT, () => {
