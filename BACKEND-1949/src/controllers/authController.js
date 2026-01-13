@@ -5,14 +5,37 @@ const User = require("../models/user.js");
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const {
+      name,
+      secondName,
+      email,
+      password,
+      repeatPassword,
+      phone,
+    } = req.body;
 
-    if (!name || !email || !password) {
+    // 1️⃣ Validación de campos
+    if (
+      !name ||
+      !secondName ||
+      !email ||
+      !password ||
+      !repeatPassword ||
+      !phone
+    ) {
       return res.status(400).json({
         message: "Todos los campos son obligatorios",
       });
     }
 
+    // 2️⃣ Passwords iguales
+    if (password !== repeatPassword) {
+      return res.status(400).json({
+        message: "Las contraseñas no coinciden",
+      });
+    }
+
+    // 3️⃣ Email único
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -20,10 +43,13 @@ const register = async (req, res) => {
       });
     }
 
+    // 4️⃣ Crear usuario
     const user = await User.create({
       name,
+      secondName,
       email,
-      password, 
+      password,
+      phone,
     });
 
     res.status(201).json({
@@ -31,7 +57,9 @@ const register = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        secondName: user.secondName,
         email: user.email,
+        phone: user.phone,
         role: user.role,
       },
     });
@@ -75,7 +103,7 @@ const register = async (req, res) => {
       const token = jwt.sign(
         {
           id: user._id,
-          email: user.email,
+          ///email: user.email,
           role: user.role,
         },
         process.env.JWT_SECRET,

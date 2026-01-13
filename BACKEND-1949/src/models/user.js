@@ -6,16 +6,28 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
+    },
+    secondName: {
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
       required: true,
+    },
+    phone: {
+      type: Number,
+      required: true,
+      trim: true,
     },
     role: {
       type: String,
@@ -26,12 +38,12 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  
 });
-
 
 module.exports = mongoose.model("User", userSchema);
