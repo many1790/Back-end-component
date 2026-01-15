@@ -100,23 +100,27 @@ const register = async (req, res) => {
         });
       }
   
-      const token = jwt.sign(
-        {
-          id: user._id,
-          //email: user.email,
-          role: user.role,
-        },
+      const accessToken = jwt.sign(
+        { id: user._id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "15m" }
       );
-  
+      
+      const refreshToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_REFRESH_SECRET,
+        { expiresIn: "7d" }
+      );
+      
       res.status(200).json({
-        token,
+        accessToken,
+        refreshToken,
         user: {
           email: user.email,
           role: user.role,
         },
       });
+      
     } catch (error) {
       console.error("ERROR login:", error);
       res.status(500).json({

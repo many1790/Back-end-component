@@ -170,6 +170,30 @@ app.delete(
   }
 );
 
+app.post("/auth/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token requerido" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET
+    );
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch {
+    res.status(403).json({ message: "Refresh token inválido" });
+  }
+});
 
 /* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
