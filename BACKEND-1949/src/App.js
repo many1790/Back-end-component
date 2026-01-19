@@ -25,9 +25,7 @@ app.use(
 connectDB();
 app.use("/auth", authRoutes);
 
-/* ---------------- USER ---------------- */
 
-// GET ME
 app.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -37,8 +35,6 @@ app.get("/me", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Error interno" });
   }
 });
-
-// UPDATE ME
 app.patch("/me", authMiddleware, async (req, res) => {
   try {
     const { name, secondName, email, phone, password, repeatPassword } = req.body;
@@ -65,7 +61,6 @@ app.patch("/me", authMiddleware, async (req, res) => {
   }
 });
 
-/* ---------------- ADMIN USERS ---------------- */
 
 app.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
   const users = await User.find().select("-password");
@@ -88,9 +83,6 @@ app.delete("/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
   res.json({ message: "Usuario eliminado" });
 });
 
-/* ---------------- APPOINTMENTS ---------------- */
-
-// CREATE (solo user)
 app.post("/appointments", authMiddleware, async (req, res) => {
   if (req.user.role !== "user") {
     return res.status(403).json({ message: "Solo usuarios pueden crear citas" });
@@ -110,13 +102,11 @@ app.post("/appointments", authMiddleware, async (req, res) => {
   res.status(201).json(appointment);
 });
 
-// GET MY APPOINTMENTS (user)
 app.get("/appointments/me", authMiddleware, async (req, res) => {
   const appointments = await Appointment.find({ user: req.user.id }).sort({ date: 1 });
   res.json(appointments);
 });
 
-// GET ALL APPOINTMENTS (admin)
 app.get("/appointments", authMiddleware, adminMiddleware, async (req, res) => {
   const appointments = await Appointment.find()
     .populate("user", "name secondName email phone")
@@ -125,7 +115,6 @@ app.get("/appointments", authMiddleware, adminMiddleware, async (req, res) => {
   res.json(appointments);
 });
 
-// UPDATE / CANCEL (admin o dueño)
 app.patch("/appointments/:id", authMiddleware, async (req, res) => {
   const appointment = await Appointment.findById(req.params.id);
   if (!appointment) return res.status(404).json({ message: "Cita no encontrada" });
@@ -195,6 +184,5 @@ app.post("/auth/refresh", async (req, res) => {
   }
 });
 
-/* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

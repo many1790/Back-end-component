@@ -2,7 +2,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const register = async (req, res) => {
   try {
     const {
@@ -14,7 +13,6 @@ const register = async (req, res) => {
       phone,
     } = req.body;
 
-    // 1️⃣ Validación de campos
     if (
       !name ||
       !secondName ||
@@ -28,14 +26,12 @@ const register = async (req, res) => {
       });
     }
 
-    // 2️⃣ Passwords iguales
     if (password !== repeatPassword) {
       return res.status(400).json({
         message: "Las contraseñas no coinciden",
       });
     }
 
-    // 3️⃣ Email único
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -43,7 +39,6 @@ const register = async (req, res) => {
       });
     }
 
-    // 4️⃣ Crear usuario
     const user = await User.create({
       name,
       secondName,
@@ -71,7 +66,6 @@ const register = async (req, res) => {
   }
 };
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
   const login = async (req, res) => {
     try {
       const { email, password } = req.body;
