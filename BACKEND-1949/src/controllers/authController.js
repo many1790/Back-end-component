@@ -85,7 +85,7 @@ const register = async (req, res) => {
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(401).json({
-          message: " no userrrr",
+          message: "usuario o contraseña incorrectos",
         });
       }
   
@@ -96,7 +96,7 @@ const register = async (req, res) => {
   
       if (!isValidPassword) {
         return res.status(401).json({
-          message: "pass no paassss ahahahahha",
+          message: "credenciales invalidas",
         });
       }
   
