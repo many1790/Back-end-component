@@ -129,3 +129,9 @@ Notes
 -Sensitive fields are excluded from responses
 
 -Role-based access is enforced both server-side and client-side
+## Demo users
+
+Before testing the application, run the seed script:
+
+```bash
+node src/database/seed.js
