@@ -10,7 +10,7 @@
   },
   "type": "commonjs",
   "keywords": [],
-  "author": "i.o.s.f",
+  "author": "IOSF",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
