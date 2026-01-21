@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
 const authRoutes = require("./routes/authRoutes.js");
 const User = require("./models/user.js");
@@ -12,7 +13,6 @@ const adminMiddleware = require("./middlewares/adminMiddleware.js");
 
 const app = express();
 
-/* ---------------- MIDDLEWARES ---------------- */
 app.use(express.json());
 app.use(
   cors({
@@ -25,7 +25,6 @@ app.use(
 connectDB();
 app.use("/auth", authRoutes);
 
-
 app.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -35,6 +34,7 @@ app.get("/me", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Error interno" });
   }
 });
+
 app.patch("/me", authMiddleware, async (req, res) => {
   try {
     const { name, secondName, email, phone, password, repeatPassword } = req.body;
@@ -47,20 +47,32 @@ app.patch("/me", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Las contraseñas no coinciden" });
     }
 
-    const updateData = { name, secondName, email, phone };
-    if (password) updateData.password = password;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    const user = await User.findByIdAndUpdate(req.user.id, updateData, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+    user.name = name;
+    user.secondName = secondName;
+    user.email = email;
+    user.phone = phone;
 
-    res.json(user);
+    if (password) {
+      user.password = password;
+    }
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      secondName: user.secondName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    });
   } catch {
     res.status(500).json({ message: "Error al actualizar perfil" });
   }
 });
-
 
 app.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
   const users = await User.find().select("-password");
@@ -68,13 +80,39 @@ app.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 app.patch("/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  }).select("-password");
+  try {
+    const { name, secondName, email, phone, role, password } = req.body;
 
-  if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-  res.json(user);
+    if (!name || !secondName || !email || !phone || !role) {
+      return res.status(400).json({ message: "Campos incompletos" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    user.name = name;
+    user.secondName = secondName;
+    user.email = email;
+    user.phone = phone;
+    user.role = role;
+
+    if (password) {
+      user.password = password;
+    }
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      secondName: user.secondName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    });
+  } catch {
+    res.status(500).json({ message: "Error al actualizar usuario" });
+  }
 });
 
 app.delete("/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
@@ -134,30 +172,12 @@ app.patch("/appointments/:id", authMiddleware, async (req, res) => {
   await appointment.save();
   res.json(appointment);
 });
-app.delete(
-  "/appointments/:id",
-  authMiddleware,
-  adminMiddleware,
-  async (req, res) => {
-    try {
-      const appointment = await Appointment.findByIdAndDelete(req.params.id);
 
-      if (!appointment) {
-        return res.status(404).json({
-          message: "Cita no encontrada",
-        });
-      }
-
-      res.status(200).json({
-        message: "Cita eliminada",
-      });
-    } catch (error) {
-      res.status(500).json({
-        message: "Error al eliminar cita",
-      });
-    }
-  }
-);
+app.delete("/appointments/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const appointment = await Appointment.findByIdAndDelete(req.params.id);
+  if (!appointment) return res.status(404).json({ message: "Cita no encontrada" });
+  res.json({ message: "Cita eliminada" });
+});
 
 app.post("/auth/refresh", async (req, res) => {
   const { refreshToken } = req.body;
@@ -167,10 +187,7 @@ app.post("/auth/refresh", async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET
-    );
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
     const newAccessToken = jwt.sign(
       { id: decoded.id, role: decoded.role },
@@ -178,11 +195,12 @@ app.post("/auth/refresh", async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    res.status(200).json({ accessToken: newAccessToken });
+    res.json({ accessToken: newAccessToken });
   } catch {
     res.status(403).json({ message: "Refresh token inválido" });
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

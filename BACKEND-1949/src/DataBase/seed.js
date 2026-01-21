@@ -23,7 +23,7 @@ const seed = async () => {
       {
         name: "User",
         secondName: "Demo",
-        email: "om2@gamail.com",
+        email: "om2@gmail.com",
         password: "12345678",
         phone: "600000002",
         role: "user",
